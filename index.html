@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class = "uploader-container">
+    <button class = "uploader-container__selector-button" onclick="document.querySelector('input').click()">Select photos</button>
+    <input  name="formElem" class="uploader-container__input-button" type="file" multiple value="Change picture" onchange="download(this)">
+    <div class = "uploader-container__img-wrapper">
+      <div class="img-content"></div>
+      <h3 class="text">Walpapers . . .</h3>
+    </div>
+    <button class = "uploader-container__uploader-button">Upload</button>
+  </div>
+ 
+
+  <script src="main.js"></script>
+</body>
+</html>
