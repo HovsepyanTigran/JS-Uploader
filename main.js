@@ -1,175 +1,195 @@
 let input = document.querySelector(".uploader-container__input-button ");
 let wrapper = document.querySelector(".uploader-container__file-wrapper");
 let uploader = document.querySelector(".uploader-container__uploader-button");
-let percent = document.querySelector(".progress-bar-percent");
 
-let xxx
+let fileDeleteButtonsArray = []
+let filesContentArray = []
 let photos = [];
+let newList;
+let xhrsArray = [];
 
-wrapper.addEventListener('dragover', evt => {
-	evt.preventDefault()
-  document.querySelector(".text").innerHTML = "Drop files here"
-  wrapper.style.backgroundColor = `${2}px`
-  wrapper.style.backgroundColor = 'rgb(' + 175 + ',' + 175 + ',' + 172 + ')';
-})
-
-wrapper.addEventListener('dragleave', evt => {
-	evt.preventDefault()
-  document.querySelector(".text").innerHTML = "Files . . ."
-  wrapper.style.backgroundColor = 'rgb(' + 199 + ',' + 199 + ',' + 195 + ')';
-});
-
-wrapper.addEventListener('drop', evt => {
-	evt.preventDefault()
-
-	let file = evt.dataTransfer.files;
-	for (let i = 0; i < file.length; i++) {
+function domConstructor(files) 
+{
+  for(let i = 0; i < files.length; i++) 
+  {
     let fileUniqueIdentifier = 'file-' + Date.now() + Math.random(1, 1000);
-    photos.push({
-      file: file[i],
-      id: fileUniqueIdentifier
-    })
+
     let reader = new FileReader();
-  reader.readAsDataURL(file[i]);  
-  reader.onload = function () {
-    var fileContent = document.createElement("div");
-    fileContent.id = fileUniqueIdentifier;
-    fileContent.classList = "file-content";
-    wrapper.appendChild(fileContent);
-    var file = document.createElement('img');
-    file.classList = "file"
-    fileContent.appendChild(file);
-    file.src = reader.result;
-    var progressContent = document.createElement('div');
+    reader.readAsDataURL(files[i]);
+    reader.onload = function () 
+    {
+      photos.push({
+        file: files[i],
+        id: fileUniqueIdentifier
+      })
+
+      let fileContent = document.createElement("div");
+      fileContent.id = fileUniqueIdentifier;
+      fileContent.classList = "file-content";
+      wrapper.appendChild(fileContent);
+    
+      let file = document.createElement('img');
+      file.classList = "file";
+      fileContent.appendChild(file);
+      file.src = reader.result;
+
+      
+      let progressContent = document.createElement('div');
       progressContent.classList = "progress-content";
       fileContent.appendChild(progressContent);
-      var uploadProgress = document.createElement('div');
+
+      let uploadProgress = document.createElement('div');
       uploadProgress.classList = "upload-progress";
       progressContent.appendChild(uploadProgress);
-      var progressRow = document.createElement("span");
+
+      let progressRow = document.createElement("span");
       progressRow.classList = "progress-row";
       uploadProgress.appendChild(progressRow);
+
       let uploadPercent = document.createElement("span");
       uploadPercent.classList = "upload-percent";
       progressContent.appendChild(uploadPercent);
       uploadPercent.innerHTML = `${0}%`;
+
       let fileDeleteButton = document.createElement('button');
       fileDeleteButton.classList = "file-delete-button";
-      fileDeleteButton.innerHTML = 'x'
+      fileDeleteButton.innerHTML = 'x';
+      fileDeleteButton.id = fileUniqueIdentifier;
       fileContent.appendChild(fileDeleteButton);
-      fileDeleteButton.onclick = () => {
-        photos.splice(index, 1);
-      }
-      
-  }
-  document.querySelector(".text").style.display = "none";
-	}
-});
+      fileDeleteButtonsArray.push(fileDeleteButton)
 
-
-
-function download(input) {
-  for (let i = 0; i < input.files.length; i++) {
-    var file = input.files[i];
-    let reader = new FileReader();
-    reader.readAsDataURL(file);
-    let fileUniqueIdentifier = 'file-' + Date.now() + Math.random(1, 1000);
-    photos.push({
-      file: file,
-      id: fileUniqueIdentifier
-    })
-   
-    reader.onload = function () {
-      var fileContent = document.createElement("div");
-      fileContent.id = fileUniqueIdentifier;
-      fileContent.classList = "file-content";
-      wrapper.appendChild(fileContent);
-      var file = document.createElement('img');
-      file.classList = "file"
-      fileContent.appendChild(file);
-      file.src = reader.result;
-      var progressContent = document.createElement('div');
-      progressContent.classList = "progress-content";
-      fileContent.appendChild(progressContent);
-      var uploadProgress = document.createElement('div');
-      uploadProgress.classList = "upload-progress";
-      progressContent.appendChild(uploadProgress);
-      var progressRow = document.createElement("span");
-      progressRow.classList = "progress-row";
-      uploadProgress.appendChild(progressRow);
-      let uploadPercent = document.createElement("span");
-      uploadPercent.classList = "upload-percent";
-      progressContent.appendChild(uploadPercent);
-      uploadPercent.innerHTML = `${0}%`
+      document.querySelectorAll('.file-content').forEach(item => filesContentArray.push(item))
+      fileDeleteButtonsArray.forEach(function(item) 
+        {
+          item.onclick = () => 
+          {
+            let deletedContent = filesContentArray.find(elem => elem.id === item.id)
+            wrapper.removeChild(deletedContent)
+            photos.splice(photos.findIndex(elem => elem.id === item.id),1)
+            if(document.querySelectorAll('.file-content').length === 0) 
+            {
+              document.querySelector(".text").style.display = "block";
+              document.querySelector(".text").innerHTML = "Files . . ."
+            }
+          }
+        })
       document.querySelector(".text").style.display = "none";
-      console.log(photos);
-      let fileDeleteButton = document.createElement('button');
-      fileDeleteButton.classList = "file-delete-button";
-      fileDeleteButton.innerHTML = 'x'
-      fileContent.appendChild(fileDeleteButton);
-      // photos = [];
-      // imgContent.innerHTML = "";
-      // document.querySelector(".text").style.display = "inline"
     }
   }
+
+  uploader.disable = false
 }
-let x
-console.log(x);
-if(x === undefined) {
-  uploader.onclick = () => {
+
+function download(input) 
+{
+  domConstructor(input.files)
+}
+
+function dragDrop() {
+  wrapper.addEventListener('dragover', evt => 
+  {
+    evt.preventDefault();
+    document.querySelector(".text").innerHTML = "Drop files here";
+    wrapper.style.backgroundColor = `${2}px`;
+    wrapper.style.backgroundColor = 'rgb(' + 175 + ',' + 175 + ',' + 172 + ')';
+  })
+
+  wrapper.addEventListener('dragleave', evt => 
+  {
+    evt.preventDefault();
+    document.querySelector(".text").innerHTML = "Files . . ."
+    wrapper.style.backgroundColor = 'rgb(' + 199 + ',' + 199 + ',' + 195 + ')';
+  });
+
+  wrapper.addEventListener('drop', evt => 
+  {
+    evt.preventDefault();
+    domConstructor(evt.dataTransfer.files);
+    wrapper.style.backgroundColor = 'rgb(' + 199 + ',' + 199 + ',' + 195 + ')';
+  });
+}
+
+dragDrop()
+
+
+uploader.onclick = () => 
+{
+  if(uploader.disable === false) 
+  {
     upload()
   }
 }
 
-console.log(photos);
-function upload() {
-  while (photos.length != 0) {
-    return new Promise(function (resolve, reject) {
-    newList = photos.slice(0, 3)
-    for (let j = 0; j < newList.length; j++) {
-      let formData = new FormData();
-      let { file, id } = newList[j];
-      formData.append("file", file);
-      let xhr = new XMLHttpRequest();
-      xhr.unique_id = id;
-      document.querySelectorAll(".uploader-container__img-wrapper").forEach(item => item);
-      xhr.upload.onprogress = function (evt) {
-        if (evt.lengthComputable) {
-          var percentComplete = parseInt((evt.loaded / evt.total) * 100);
-          let percentBlock = document.getElementById(xhr.unique_id);
-          let progressBlock = document.getElementById(xhr.unique_id);
-          if (percentBlock && progressBlock) 
+
+function upload() 
+{
+  uploader.disable = true
+  while (photos.length != 0) 
+  {
+    return new Promise(function (resolve, reject) 
+    {
+      newList = photos.slice(0, 3)
+      for (let j = 0; j < newList.length; j++) 
+      {
+        let formData = new FormData();
+        let { file, id } = newList[j];
+        formData.append("file", file);
+        let xhr = new XMLHttpRequest();
+        xhr.unique_id = id;
+        xhrsArray.push(xhr);
+
+        xhr.upload.onprogress = function(evt) 
           {
-            percentBlock.querySelector('.upload-percent').innerHTML = `${percentComplete}%`;
-            progressBlock.querySelector('.progress-row').style.width = `${percentComplete}%`;
+            if (evt.lengthComputable) 
+            {
+              let percentComplete = parseInt((evt.loaded / evt.total) * 100);
+              let percentBlock = document.getElementById(xhr.unique_id);
+              let progressBlock = document.getElementById(xhr.unique_id);
+              if (percentBlock && progressBlock) 
+              {
+                percentBlock.querySelector('.upload-percent').innerHTML = `${percentComplete}%`;
+                progressBlock.querySelector('.progress-row').style.width = `${percentComplete}%`;
+              }
+            }
           }
-        }
-      }
-      xhr.open("POST", "http://uploader/");
-      xhr.send(formData);
+        xhr.open("POST", "http://uploader/");
+        xhr.send(formData);
         xhr.onload = function () {
-          if (xhr.status >= 200 && xhr.status < 300) {
+          if (xhr.status >= 200 && xhr.status < 300) 
+          {
             resolve(xhr.response);
             if(j===2) upload()
-          } else {
+          } else 
+          {
             reject({
-              status: xhr.status,
-              statusText: xhr.statusText
+            status: xhr.status,
+            statusText: xhr.statusText
             });
           }
         }
-        xhr.onerror = function () {
+        xhr.onerror = function () 
+        {
           reject({
             status: xhr.status,
             statusText: xhr.statusText
           });
         };
-    }
-    newList.splice(0, 3)
-    photos.splice(0, 3)
-  })
+        document.querySelectorAll('.file-content').forEach(item => filesContentArray.push(item))
+          fileDeleteButtonsArray.forEach(function(item) 
+          {
+            item.onclick = () => 
+            { 
+              let deletedXhr = xhrsArray.find(elem => elem.unique_id === item.id);
+              if(deletedXhr) deletedXhr.abort()
+              let deletedContent = filesContentArray.find(elem => elem.id === item.id);
+              photos.splice(photos.findIndex(elem => elem.id === item.id),1);
+              newList.splice(newList.findIndex(elem => elem.id === item.id),1);
+              wrapper.removeChild(deletedContent);
+            }
+          })
+      }
+      newList.splice(0, 3);
+      photos.splice(0, 3); 
+    })
   }
-  x=1
 }
-
-
