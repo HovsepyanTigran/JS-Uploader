@@ -12,7 +12,7 @@ function domConstructor(files)
 {
   for(let i = 0; i < files.length; i++) 
   {
-    let fileUniqueIdentifier = 'file-' + Date.now() + Math.random(1, 1000);
+    let fileUniqueIdentifier = `file-${Date.now() + Math.random(1, 1000)}`
 
     let reader = new FileReader();
     reader.readAsDataURL(files[i]);
@@ -51,25 +51,31 @@ function domConstructor(files)
       progressContent.appendChild(uploadPercent);
       uploadPercent.innerHTML = `${0}%`;
 
+      let doneIcon = document.createElement('img');
+      doneIcon.classList = 'done-icon';
+      progressContent.appendChild(doneIcon);
+      doneIcon.style.visibility = 'hidden';
+
       let fileDeleteButton = document.createElement('button');
       fileDeleteButton.classList = "file-delete-button";
       fileDeleteButton.innerHTML = 'x';
       fileDeleteButton.id = fileUniqueIdentifier;
       fileContent.appendChild(fileDeleteButton);
-      fileDeleteButtonsArray.push(fileDeleteButton)
+      fileDeleteButtonsArray.push(fileDeleteButton);
 
-      document.querySelectorAll('.file-content').forEach(item => filesContentArray.push(item))
+      document.querySelectorAll('.file-content').forEach(item => filesContentArray.push(item));
       fileDeleteButtonsArray.forEach(function(item) 
         {
           item.onclick = () => 
           {
-            let deletedContent = filesContentArray.find(elem => elem.id === item.id)
-            wrapper.removeChild(deletedContent)
-            photos.splice(photos.findIndex(elem => elem.id === item.id),1)
+            let deletedContent = filesContentArray.find(elem => elem.id === item.id);
+            wrapper.removeChild(deletedContent);
+            photos.splice(photos.findIndex(elem => elem.id === item.id),1);
+            
             if(document.querySelectorAll('.file-content').length === 0) 
             {
               document.querySelector(".text").style.display = "block";
-              document.querySelector(".text").innerHTML = "Files . . ."
+              document.querySelector(".text").innerHTML = "Files . . .";
             }
           }
         })
@@ -77,7 +83,7 @@ function domConstructor(files)
     }
   }
 
-  uploader.disable = false
+  uploader.disable = false;
 }
 
 function download(input) 
@@ -134,6 +140,7 @@ function upload()
         let formData = new FormData();
         let { file, id } = newList[j];
         formData.append("file", file);
+        
         let xhr = new XMLHttpRequest();
         xhr.unique_id = id;
         xhrsArray.push(xhr);
@@ -145,13 +152,20 @@ function upload()
               let percentComplete = parseInt((evt.loaded / evt.total) * 100);
               let percentBlock = document.getElementById(xhr.unique_id);
               let progressBlock = document.getElementById(xhr.unique_id);
+              let doneIconBlock = document.getElementById(xhr.unique_id)
               if (percentBlock && progressBlock) 
               {
                 percentBlock.querySelector('.upload-percent').innerHTML = `${percentComplete}%`;
                 progressBlock.querySelector('.progress-row').style.width = `${percentComplete}%`;
+                if(percentComplete === 100) 
+                {
+                  doneIconBlock.querySelector('.done-icon').src = '/pictures/done-icon.png';
+                  doneIconBlock.querySelector('.done-icon').style.visibility = 'visible';
+                }
               }
             }
           }
+
         xhr.open("POST", "http://uploader/");
         xhr.send(formData);
         xhr.onload = function () {
@@ -167,6 +181,7 @@ function upload()
             });
           }
         }
+
         xhr.onerror = function () 
         {
           reject({
@@ -174,6 +189,7 @@ function upload()
             statusText: xhr.statusText
           });
         };
+        
         document.querySelectorAll('.file-content').forEach(item => filesContentArray.push(item))
           fileDeleteButtonsArray.forEach(function(item) 
           {
@@ -181,15 +197,24 @@ function upload()
             { 
               let deletedXhr = xhrsArray.find(elem => elem.unique_id === item.id);
               if(deletedXhr) deletedXhr.abort()
+              
               let deletedContent = filesContentArray.find(elem => elem.id === item.id);
               photos.splice(photos.findIndex(elem => elem.id === item.id),1);
               newList.splice(newList.findIndex(elem => elem.id === item.id),1);
               wrapper.removeChild(deletedContent);
+              
+              if(document.querySelectorAll('.file-content').length === 0) 
+              {
+              document.querySelector(".text").style.display = "block";
+              document.querySelector(".text").innerHTML = "Files . . ."
+              }
             }
           })
       }
+      
       newList.splice(0, 3);
       photos.splice(0, 3); 
+    
     })
   }
 }
