@@ -62,7 +62,6 @@ function domConstructor(files)
       fileDeleteButton.id = fileUniqueIdentifier;
       fileContent.appendChild(fileDeleteButton);
       fileDeleteButtonsArray.push(fileDeleteButton);
-
       document.querySelectorAll('.file-content').forEach(item => filesContentArray.push(item));
       fileDeleteButtonsArray.forEach(function(item) 
         {
@@ -133,10 +132,11 @@ function upload()
   while (photos.length != 0) 
   {
     return new Promise(function (resolve, reject) 
-    {
-      newList = photos.slice(0, 3)
+    {  
+      newList = photos.slice(0, 3);
       for (let j = 0; j < newList.length; j++) 
       {
+        if(!newList[j]) continue;
         let formData = new FormData();
         let { file, id } = newList[j];
         formData.append("file", file);
@@ -159,20 +159,35 @@ function upload()
                 progressBlock.querySelector('.progress-row').style.width = `${percentComplete}%`;
                 if(percentComplete === 100) 
                 {
+                  let ind1 = photos.findIndex(elem => elem?.id === xhr.unique_id);
+                  let ind2 = newList.findIndex(elem => elem?.id === xhr.unique_id);
+                  console.log(ind1);
+                  photos[ind1] = null;
+                  newList[ind2] = null;
+                  let chekValue = newList.every(val => val === null)
+                  if(chekValue) {
+                    newList.splice(0,3);
+                    photos.splice(0,3);
+                  }
                   doneIconBlock.querySelector('.done-icon').src = '/pictures/done-icon.png';
                   doneIconBlock.querySelector('.done-icon').style.visibility = 'visible';
+                  console.log(photos);
+                  console.log(newList);
                 }
+                
               }
             }
+
           }
 
         xhr.open("POST", "http://uploader/");
         xhr.send(formData);
-        xhr.onload = function () {
+        xhr.onload = function () 
+        {
           if (xhr.status >= 200 && xhr.status < 300) 
           {
             resolve(xhr.response);
-            if(j===2) upload()
+            if(j===2) upload();
           } else 
           {
             reject({
@@ -189,32 +204,41 @@ function upload()
             statusText: xhr.statusText
           });
         };
-        
         document.querySelectorAll('.file-content').forEach(item => filesContentArray.push(item))
           fileDeleteButtonsArray.forEach(function(item) 
           {
             item.onclick = () => 
-            { 
+            {
               let deletedXhr = xhrsArray.find(elem => elem.unique_id === item.id);
-              if(deletedXhr) deletedXhr.abort()
-              
-              let deletedContent = filesContentArray.find(elem => elem.id === item.id);
-              photos.splice(photos.findIndex(elem => elem.id === item.id),1);
-              newList.splice(newList.findIndex(elem => elem.id === item.id),1);
+              if(deletedXhr) deletedXhr.abort();
+              let deletedContent = filesContentArray.find(elem => elem?.id === item.id);
+              let ind1 = photos.findIndex(elem => elem?.id === item.id);
+              let ind2 = newList.findIndex(elem => elem?.id === item.id);
+              photos[ind1] = null;
+              newList[ind2] = null;
+              console.log(photos);
+              console.log(newList);
+              let chekValue = newList.every(val => val === null);
+              if(chekValue) {
+                newList.splice(0,3)
+                for(let i = 0; i < photos.length; i++) {
+                  if(photos[i] === null) {
+                  photos.splice(i,1)
+                  }
+                }
+                if(photos.length != 0) upload()
+              }
+               
               wrapper.removeChild(deletedContent);
-              
               if(document.querySelectorAll('.file-content').length === 0) 
               {
               document.querySelector(".text").style.display = "block";
-              document.querySelector(".text").innerHTML = "Files . . ."
+              document.querySelector(".text").innerHTML = "Files . . .";
               }
             }
           })
       }
-      
-      newList.splice(0, 3);
-      photos.splice(0, 3); 
-    
     })
+    
   }
 }
