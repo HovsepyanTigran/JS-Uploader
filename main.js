@@ -172,7 +172,7 @@ function upload() {
                     }
                   }
                   
-                  if (photos.length < 0) upload();
+                  if (photos.length != 0) upload();
                 
                 }
                 
@@ -188,7 +188,6 @@ function upload() {
         xhr.onload = function () {
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve(xhr.response);
-            if (j === 2) upload();
           } else {
             reject({
               status: xhr.status,
@@ -241,7 +240,7 @@ function upload() {
               document.querySelector(".text").style.display = "block";
               document.querySelector(".text").innerHTML = "Files . . .";
             }
-          
+  
           }
         
         });
