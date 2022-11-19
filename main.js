@@ -131,9 +131,19 @@ function upload()
   uploader.disable = true
   while (photos.length != 0) 
   {
+    for(let i = 0; i < photos.length; i++) {
+      if(photos[i] === null) {
+      photos.splice(i,1)
+      }
+    }
     return new Promise(function (resolve, reject) 
     {  
       newList = photos.slice(0, 3);
+      for(let i = 0; i < newList.length; i++) {
+        if(newList[i] === null) {
+        newList.splice(i,1)
+        }
+      }
       for (let j = 0; j < newList.length; j++) 
       {
         if(!newList[j]) continue;
@@ -166,8 +176,18 @@ function upload()
                   newList[ind2] = null;
                   let chekValue = newList.every(val => val === null)
                   if(chekValue) {
-                    newList.splice(0,3);
-                    photos.splice(0,3);
+                    // newList.splice(0,3);
+                    for(let i = 0; i < newList.length; i++) {
+                      if(newList[i] === null) {
+                      newList.splice(i,1)
+                      }
+                    }
+                    for(let i = 0; i < photos.length; i++) {
+                      if(photos[i] === null) {
+                      photos.splice(i,1)
+                      }
+                    }
+                    if(photos.length != 0) upload()
                   }
                   doneIconBlock.querySelector('.done-icon').src = '/pictures/done-icon.png';
                   doneIconBlock.querySelector('.done-icon').style.visibility = 'visible';
@@ -220,7 +240,11 @@ function upload()
               console.log(newList);
               let chekValue = newList.every(val => val === null);
               if(chekValue) {
-                newList.splice(0,3)
+                for(let i = 0; i < newList.length; i++) {
+                  if(newList[i] === null) {
+                  newList.splice(i,1)
+                  }
+                }
                 for(let i = 0; i < photos.length; i++) {
                   if(photos[i] === null) {
                   photos.splice(i,1)
