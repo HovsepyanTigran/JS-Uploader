@@ -31,29 +31,29 @@ function domConstructor(files) {
       file.src = reader.result;
 
       let progressContent = document.createElement("div");
-      progressContent.classList = "progress-content";
+      progressContent.classList = "file__progress-content";
       fileContent.appendChild(progressContent);
 
       let uploadProgress = document.createElement("div");
-      uploadProgress.classList = "upload-progress";
+      uploadProgress.classList = "progress-content__upload-progress";
       progressContent.appendChild(uploadProgress);
 
       let progressRow = document.createElement("span");
-      progressRow.classList = "progress-row";
+      progressRow.classList = "upload-progress__progress-row ";
       uploadProgress.appendChild(progressRow);
 
       let uploadPercent = document.createElement("span");
-      uploadPercent.classList = "upload-percent";
+      uploadPercent.classList = "progress-content__upload-percent";
       progressContent.appendChild(uploadPercent);
       uploadPercent.innerHTML = `${0}%`;
 
       let doneIcon = document.createElement("img");
-      doneIcon.classList = "done-icon";
+      doneIcon.classList = "progress-content__done-icon";
       progressContent.appendChild(doneIcon);
       doneIcon.style.visibility = "hidden";
 
       let fileDeleteButton = document.createElement("button");
-      fileDeleteButton.classList = "file-delete-button";
+      fileDeleteButton.classList = "file-content__file-delete-button";
       fileDeleteButton.innerHTML = "x";
       fileDeleteButton.id = fileUniqueIdentifier;
       fileContent.appendChild(fileDeleteButton);
@@ -68,12 +68,12 @@ function domConstructor(files) {
           photos.splice(photos.findIndex((elem) => elem.id === item.id),1);
 
           if (document.querySelectorAll(".file-content").length === 0) {
-            document.querySelector(".text").style.display = "block";
-            document.querySelector(".text").innerHTML = "Files . . .";
+            document.querySelector(".uploader-container__text").style.display = "block";
+            document.querySelector(".uploader-container__text").innerHTML = "Files . . .";
           }
         };
       });
-      document.querySelector(".text").style.display = "none";
+      document.querySelector(".uploader-container__text").style.display = "none";
     };
   }
 
@@ -87,14 +87,14 @@ function download(input) {
 function dragDrop() {
   wrapper.addEventListener("dragover", (evt) => {
     evt.preventDefault();
-    document.querySelector(".text").innerHTML = "Drop files here";
+    document.querySelector(".uploader-container__text").innerHTML = "Drop files here";
     wrapper.style.backgroundColor = `${2}px`;
     wrapper.style.backgroundColor = "rgb(" + 175 + "," + 175 + "," + 172 + ")";
   });
 
   wrapper.addEventListener("dragleave", (evt) => {
     evt.preventDefault();
-    document.querySelector(".text").innerHTML = "Files . . .";
+    document.querySelector(".uploader-container__text").innerHTML = "Files . . .";
     wrapper.style.backgroundColor = "rgb(" + 199 + "," + 199 + "," + 195 + ")";
   });
 
@@ -122,9 +122,10 @@ function upload() {
         photos.splice(i, 1);
       }
     }
-    
+
     return new Promise(function (resolve, reject) {
       newList = photos.slice(0, 3);
+      
       for (let i = 0; i < newList.length; i++) {
         if (newList[i] === null) {
           newList.splice(i, 1);
@@ -148,8 +149,8 @@ function upload() {
             let progressBlock = document.getElementById(xhr.unique_id);
             let doneIconBlock = document.getElementById(xhr.unique_id);
             if (percentBlock && progressBlock) {
-              percentBlock.querySelector(".upload-percent").innerHTML = `${percentComplete}%`;
-              progressBlock.querySelector(".progress-row").style.width = `${percentComplete}%`;
+              percentBlock.querySelector(".progress-content__upload-percent").innerHTML = `${percentComplete}%`;
+              progressBlock.querySelector(".upload-progress__progress-row ").style.width = `${percentComplete}%`;
               
               if (percentComplete === 100) {
                 let ind1 = photos.findIndex((elem) => elem?.id === xhr.unique_id);
@@ -176,8 +177,8 @@ function upload() {
                 
                 }
                 
-                doneIconBlock.querySelector(".done-icon").src = "/pictures/done-icon.png";
-                doneIconBlock.querySelector(".done-icon").style.visibility ="visible";
+                doneIconBlock.querySelector(".progress-content__done-icon").src = "/pictures/done-icon.png";
+                doneIconBlock.querySelector(".progress-content__done-icon").style.visibility ="visible";
               }
             }
           }
@@ -234,11 +235,10 @@ function upload() {
               if (photos.length != 0) upload();
             
             }
-
             wrapper.removeChild(deletedContent);
             if (document.querySelectorAll(".file-content").length === 0) {
-              document.querySelector(".text").style.display = "block";
-              document.querySelector(".text").innerHTML = "Files . . .";
+              document.querySelector(".uploader-container__text").style.display = "block";
+              document.querySelector(".uploader-container__text").innerHTML = "Files . . .";
             }
   
           }
