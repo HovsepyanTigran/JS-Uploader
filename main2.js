@@ -1,6 +1,6 @@
 let input = document.querySelector(".uploader-container__input-button ");
 let wrapper = document.querySelector(".uploader-container__file-wrapper");
-let uploader = document.querySelector(".uploader-container__uploader-button");
+let uploaderButton = document.querySelector(".uploader-container__uploader-button");
 
 let fileDeleteButtonsArray = [];
 let filesContentArray = [];
@@ -8,13 +8,29 @@ let photos = [];
 let newList;
 let xhrsArray = [];
 
+
+
+function initUploader() {
+  input.addEventListener('change', function(){
+    changeHandler(this)
+  });
+
+  dragDrop();
+
+  uploaderButton.onclick = () => {
+    if (uploaderButton.disable === false) {
+      upload();
+    }
+  };
+
+}
+
+initUploader();
+
 function domConstructor(files) {
   for (let i = 0; i < files.length; i++) {
     let fileUniqueIdentifier = `file-${Date.now() + Math.random(1, 1000)}`;
 
-    let reader = new FileReader();
-    reader.readAsDataURL(files[i]);
-    reader.onload = function () {
       photos.push({
         file: files[i],
         id: fileUniqueIdentifier,
@@ -25,10 +41,16 @@ function domConstructor(files) {
       fileContent.classList = "file-content";
       wrapper.appendChild(fileContent);
 
+      let reader = new FileReader();
+      reader.readAsDataURL(files[i]);
+      reader.onload = function () {
+        file.src = reader.result;
+      }
+
       let file = document.createElement("img");
       file.classList = "file";
       fileContent.appendChild(file);
-      file.src = reader.result;
+      
 
       let progressContent = document.createElement("div");
       progressContent.classList = "file__progress-content";
@@ -50,7 +72,6 @@ function domConstructor(files) {
       let doneIcon = document.createElement("img");
       doneIcon.classList = "progress-content__done-icon";
       progressContent.appendChild(doneIcon);
-      doneIcon.style.visibility = "hidden";
 
       let fileDeleteButton = document.createElement("button");
       fileDeleteButton.classList = "file-content__file-delete-button";
@@ -58,80 +79,71 @@ function domConstructor(files) {
       fileDeleteButton.id = fileUniqueIdentifier;
       fileContent.appendChild(fileDeleteButton);
       fileDeleteButtonsArray.push(fileDeleteButton);
-      
+
       document.querySelectorAll(".file-content").forEach((item) => filesContentArray.push(item));
-      
-      fileDeleteButtonsArray.forEach(function (item) {
-        item.onclick = () => {
+
+        fileDeleteButton.onclick = function() {
+          let item = this;
           let deletedContent = filesContentArray.find((elem) => elem.id === item.id);
           wrapper.removeChild(deletedContent);
-          photos.splice(photos.findIndex((elem) => elem.id === item.id),1);
+          photos.splice(photos.findIndex((elem) => elem?.id === item.id),1);
 
           if (document.querySelectorAll(".file-content").length === 0) {
-            document.querySelector(".uploader-container__text").style.display = "block";
+            document.querySelector(".uploader-container__text").classList.remove("uploader-container__text__invisible")
             document.querySelector(".uploader-container__text").innerHTML = "Files . . .";
           }
         };
-      });
-      document.querySelector(".uploader-container__text").style.display = "none";
-    };
-  }
+      document.querySelector(".uploader-container__text").classList.add("uploader-container__text__invisible");
 
-  uploader.disable = false;
+  uploaderButton.disable = false;
+  }
 }
 
-function download(input) {
+function changeHandler(input) {
   domConstructor(input.files);
+  input.value = '';
 }
 
 function dragDrop() {
   wrapper.addEventListener("dragover", (evt) => {
     evt.preventDefault();
     document.querySelector(".uploader-container__text").innerHTML = "Drop files here";
-    wrapper.style.backgroundColor = `${2}px`;
-    wrapper.style.backgroundColor = "rgb(" + 175 + "," + 175 + "," + 172 + ")";
+    wrapper.classList.add("uploader-container__file-wrapper__drag-over");
+    wrapper.classList.remove("uploader-container__file-wrapper__drag-leave");
   });
 
   wrapper.addEventListener("dragleave", (evt) => {
     evt.preventDefault();
     document.querySelector(".uploader-container__text").innerHTML = "Files . . .";
-    wrapper.style.backgroundColor = "rgb(" + 199 + "," + 199 + "," + 195 + ")";
+    wrapper.classList.add("uploader-container__file-wrapper__drag-leave");
+    wrapper.classList.remove("uploader-container__file-wrapper__drag-over");
   });
 
   wrapper.addEventListener("drop", (evt) => {
     evt.preventDefault();
     domConstructor(evt.dataTransfer.files);
-    wrapper.style.backgroundColor = "rgb(" + 199 + "," + 199 + "," + 195 + ")";
+    wrapper.classList.add("uploader-container__file-wrapper__drag-drop");
+    wrapper.classList.remove("uploader-container__file-wrapper__drag-drop");
+    wrapper.classList.remove("uploader-container__file-wrapper__drag-over");
+    wrapper.classList.remove("uploader-container__file-wrapper__drag-leave");
   });
 }
 
-dragDrop();
 
-uploader.onclick = () => {
-  if (uploader.disable === false) {
-    upload();
-  }
-};
 
 function upload() {
-  uploader.disable = true;
+  uploaderButton.disable = true;
   while (photos.length != 0) {
-    
-    for (let i = 0; i < photos.length; i++) {
-      if (photos[i] === null) {
-        photos.splice(i, 1);
-      }
-    }
-
     return new Promise(function (resolve, reject) {
-      newList = photos.slice(0, 3);
-      
-      for (let i = 0; i < newList.length; i++) {
-        if (newList[i] === null) {
-          newList.splice(i, 1);
+
+      for (let i = 0; i < photos.length; i++) {
+        if (photos[i] === null) {
+          photos.splice(i, 1);
         }
       }
-      
+
+      newList = photos.slice(0, 3);
+
       for (let j = 0; j < newList.length; j++) {
         if (!newList[j]) continue;
         let formData = new FormData();
@@ -150,22 +162,17 @@ function upload() {
             let doneIconBlock = document.getElementById(xhr.unique_id);
             if (percentBlock && progressBlock) {
               percentBlock.querySelector(".progress-content__upload-percent").innerHTML = `${percentComplete}%`;
-              progressBlock.querySelector(".upload-progress__progress-row ").style.width = `${percentComplete}%`;
-              
-              if (percentComplete === 100) {
-                let ind1 = photos.findIndex((elem) => elem?.id === xhr.unique_id);
-                let ind2 = newList.findIndex((elem) => elem?.id === xhr.unique_id);
+              progressBlock.querySelector(".upload-progress__progress-row").style.width = `${percentComplete}%`;
 
-                photos[ind1] = null;
-                newList[ind2] = null;
+              if (percentComplete === 100) {
+                let photosNullInd = photos.findIndex((elem) => elem?.id === xhr.unique_id);
+                let newListNullInd = newList.findIndex((elem) => elem?.id === xhr.unique_id);
+
+                photos[photosNullInd] = null;
+                newList[newListNullInd] = null;
 
                 let chekValue = newList.every((val) => val === null);
                 if (chekValue) {
-                  for (let i = 0; i < newList.length; i++) {
-                    if (newList[i] === null) {
-                      newList.splice(i, 1);
-                    }
-                  }
                   
                   for (let i = 0; i < photos.length; i++) {
                     if (photos[i] === null) {
@@ -174,11 +181,11 @@ function upload() {
                   }
                   
                   if (photos.length != 0) upload();
-                
+            
                 }
-                
-                doneIconBlock.querySelector(".progress-content__done-icon").src = "/pictures/done-icon.png";
-                doneIconBlock.querySelector(".progress-content__done-icon").style.visibility ="visible";
+
+                doneIconBlock.querySelector(".progress-content__done-icon").classList.add("progress-content__done-icon__complete");
+                doneIconBlock.querySelector(".progress-content__done-icon__complete").src = "/pictures/done-icon.png";
               }
             }
           }
@@ -203,52 +210,38 @@ function upload() {
             statusText: xhr.statusText,
           });
         };
-        
+
         document.querySelectorAll(".file-content").forEach((item) => filesContentArray.push(item));
-        fileDeleteButtonsArray.forEach(function (item) {
+        document.querySelectorAll(".file-content__file-delete-button").forEach(function (item) {
           item.onclick = () => {
             let deletedXhr = xhrsArray.find((elem) => elem.unique_id === item.id);
-            
+
             if (deletedXhr) deletedXhr.abort();
-            let deletedContent = filesContentArray.find((elem) => elem?.id === item.id);
-            
-            let ind1 = photos.findIndex((elem) => elem?.id === item.id);
-            let ind2 = newList.findIndex((elem) => elem?.id === item.id);
-            
-            photos[ind1] = null;
-            newList[ind2] = null;
-            
-            let chekValue = newList.every((val) => val === null);
-            if (chekValue) {
-              for (let i = 0; i < newList.length; i++) {
-                if (newList[i] === null) {
-                  newList.splice(i, 1);
-                }
-              }
-              
-              for (let i = 0; i < photos.length; i++) {
-                if (photos[i] === null) {
-                  photos.splice(i, 1);
-                }
-              }
-              
-              if (photos.length != 0) upload();
-            
+            let deletedContent = filesContentArray.find((elem) => elem.id === item.id);
+
+            let photosNullInd = photos.findIndex((elem) => elem?.id === item.id);
+            let newListNullInd = newList.findIndex((elem) => elem?.id === item.id);
+
+            if (photosNullInd >= 0 && newListNullInd >= 0) {
+              photos[photosNullInd] = null;
+              newList[newListNullInd] = null;
             }
+
+            let chekValue = newList.every((val) => val === null);
+            if (chekValue) {    
+              if (photos.length != 0) upload();
+            }
+            
             wrapper.removeChild(deletedContent);
+                        
             if (document.querySelectorAll(".file-content").length === 0) {
-              document.querySelector(".uploader-container__text").style.display = "block";
+              document.querySelector(".uploader-container__text").classList.add(".uploader-container__text__show");
               document.querySelector(".uploader-container__text").innerHTML = "Files . . .";
             }
-  
+          
           }
-        
         });
-      
       }
-    
     });
-  
   }
-
 }
